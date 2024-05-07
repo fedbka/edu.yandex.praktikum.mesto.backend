@@ -25,6 +25,10 @@ charset = utf-8
 # Possible values - true, false
 trim_trailing_whitespace = true
 
+[*.{js,ts,jsx,tsx}]
+charset = utf-8
+
+
 [*.md]
 trim_trailing_whitespace = false
 
