@@ -1,4 +1,4 @@
-import mongoose, { Schema, SchemaTypes } from 'mongoose';
+import { model, Schema, SchemaTypes } from 'mongoose';
 
 interface ICard {
   name: string;
@@ -8,7 +8,7 @@ interface ICard {
   createdAt: Date;
 }
 
-const cardSchema = new mongoose.Schema<ICard>({
+const cardSchema = new Schema<ICard>({
   name: {
     type: SchemaTypes.String,
     required: true,
@@ -33,4 +33,4 @@ const cardSchema = new mongoose.Schema<ICard>({
   },
 });
 
-export default mongoose.model<ICard>('card', cardSchema);
+export default model<ICard>('card', cardSchema);
