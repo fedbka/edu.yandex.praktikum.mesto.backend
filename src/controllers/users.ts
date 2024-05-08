@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import Users from '../models/user';
+import Users, { IUser } from '../models/user';
 
 export const getUsers = async (req: Request, res: Response) => {
   try {
@@ -12,7 +12,7 @@ export const getUsers = async (req: Request, res: Response) => {
 
 export const getUserById = async (req: Request, res: Response) => {
   try {
-    const userId = req.params?.id;
+    const userId = req.params?._id;
     if (!userId) {
       return res.status(400).send({ message: 'Не удалось определить идентификатор запрашиваемого пользователя' });
     }
@@ -20,7 +20,9 @@ export const getUserById = async (req: Request, res: Response) => {
     const user = await Users.findById(userId);
 
     if (!user) {
-      return res.status(404).send({ message: 'Не удалось найти пользователя с указанным идентификатором', _id: userId });
+      return res
+        .status(404)
+        .send({ message: 'Не удалось найти пользователя с указанным идентификатором', _id: userId });
     }
     return res.send({ data: user });
   } catch {
@@ -30,7 +32,7 @@ export const getUserById = async (req: Request, res: Response) => {
 
 export const createUser = async (req: Request, res: Response) => {
   try {
-    const { name, about, avatar }: { name: string; about: string; avatar: string } = req.body;
+    const { name, about, avatar }: IUser = req.body;
     const user = await Users.create({ name, about, avatar });
     return res.send({ data: user });
   } catch (error) {
@@ -43,10 +45,12 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const updateUserProfile = async (req: Request, res: Response) => {
   try {
-    const { name, about, avatar, id: userId }: { name: string; about: string; avatar: string; id: string } = req.body;
+    const userId: string = req.body?._id;
     if (!userId) {
       return res.status(400).send({ message: 'Не удалось определить идентификатор пользователя обновляемого профиля' });
     }
+
+    const { name, about, avatar }: IUser = req.body;
 
     const user = await Users.findByIdAndUpdate(userId, { name, about, avatar }, { returnDocument: 'after' });
 
@@ -56,18 +60,19 @@ export const updateUserProfile = async (req: Request, res: Response) => {
         .send({ message: 'Не удалось найти пользователя с указанным идентификатором', _id: userId });
     }
     return res.send({ data: user });
-  } catch {
-    return res.status(500).send({ message: 'Не удалось получить список пользователей' });
+  } catch (error) {
+    return res.status(500).send({ message: 'Не удалось обновить профиль пользователя', error });
   }
 };
 
 export const updateUserAvatar = async (req: Request, res: Response) => {
   try {
-    const { avatar, id: userId }: { avatar: string; id: string } = req.body;
+    const userId: string = req.body?._id;
     if (!userId) {
       return res.status(400).send({ message: 'Не удалось определить идентификатор пользователя обновляемого профиля' });
     }
 
+    const avatar: string = req.body?.avatar;
     const user = await Users.findByIdAndUpdate(userId, { avatar }, { returnDocument: 'after' });
 
     if (!user) {
@@ -76,7 +81,7 @@ export const updateUserAvatar = async (req: Request, res: Response) => {
         .send({ message: 'Не удалось найти пользователя с указанным идентификатором', _id: userId });
     }
     return res.send({ data: user });
-  } catch {
-    return res.status(500).send({ message: 'Не удалось получить список пользователей' });
+  } catch (error) {
+    return res.status(500).send({ message: 'Не удалось обновить аватар пользователя', error });
   }
 };
