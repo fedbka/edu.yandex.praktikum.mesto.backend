@@ -9,12 +9,14 @@
     "lint": "npx eslint ./src/**/*.ts",
     "build": "tsc"
   },
-  "keywords": [
-    "node",
-    "express",
-    "typescript",
-    "mongodb"
-  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fedbka/edu.yandex.praktikum.mesto.backend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fedbka/edu.yandex.praktikum.mesto.backend/issues"
+  },
+  "homepage": "https://github.com/fedbka/mesto-project#readme",
   "author": "Andrey Fadeyev",
   "license": "MIT",
   "devDependencies": {
@@ -34,6 +36,7 @@
   },
   "dependencies": {
     "express": "^4.19.2",
+    "helmet": "^7.1.0",
     "mongoose": "^8.3.4"
   }
 }

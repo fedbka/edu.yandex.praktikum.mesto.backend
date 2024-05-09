@@ -30,6 +30,7 @@ const cardSchema = new Schema<ICard>({
   ],
   createdAt: {
     type: SchemaTypes.Date,
+    default: Date.now,
   },
 });
 

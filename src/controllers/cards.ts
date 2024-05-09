@@ -1,115 +1,123 @@
 import { Request, Response } from 'express';
-import Users from '../models/user';
 import Cards from '../models/card';
+
+import {
+  ERORR_CARD_NOT_FOUND,
+  ERROR_CARD_DELETE,
+  ERROR_CARD_UPDATE,
+  ERROR_REQUEST_VALIDATION,
+  catchError,
+  sendError,
+} from '../utils/errors';
 
 export const getCards = async (req: Request, res: Response) => {
   try {
     const data = await Cards.find({});
     return res.send({ data });
-  } catch {
-    return res.status(500).send({ message: 'Не удалось получить список карточек' });
+  } catch (error) {
+    return catchError(res, error);
+  }
+};
+
+export const getCardById = async (req: Request, res: Response) => {
+  try {
+    const { id: cardId } = req.params;
+    if (!cardId) {
+      return sendError(res, ERROR_REQUEST_VALIDATION);
+    }
+
+    const card = await Cards.findById(cardId);
+    if (!card) {
+      return sendError(res, ERORR_CARD_NOT_FOUND);
+    }
+
+    return res.send(card);
+  } catch (error) {
+    return catchError(res, error);
   }
 };
 
 export const createCard = async (req: Request, res: Response) => {
-  type requiredFields = {
-    name: string;
-    link: string;
-    owner: string;
-  };
   try {
-    const { name, link, owner: userId }: requiredFields = req.body;
+    const { name, link } = req.body;
 
-    if (!name || !link || !userId) {
-      return res.status(400).send({ message: 'Не удалось создать карточку - не все обязательные поля указаны' });
+    if (!name || !link) {
+      return sendError(res, ERROR_REQUEST_VALIDATION);
     }
 
-    const user = await Users.findById(userId);
-
-    if (!user) {
-      return res
-        .status(404)
-        .send({ message: 'Не удалось найти пользователя с указанным идентификатором', _id: userId });
-    }
-
-    const card = await Cards.create({ name, link, owner: userId, createdAt: Date.now() });
-    return res.send({ data: card });
+    const card = await Cards.create({ name, link, owner: res.locals.user });
+    return res.status(201).send(card);
   } catch (error) {
-    return res.status(400).send({
-      message: 'Не создать карточку',
-      error,
-    });
+    return catchError(res, error);
   }
 };
 
 export const deleteCard = async (req: Request, res: Response) => {
   try {
-    const cardId = req.body;
-
+    const { _id: userId } = res.locals.user;
+    const { id: cardId } = req.params;
     if (!cardId) {
-      return res.status(404).send({ message: 'Не удалось выполнить удаление карточки - не указан _id карточки.' });
+      return sendError(res, ERROR_REQUEST_VALIDATION);
     }
 
     const card = await Cards.findById(cardId);
-
     if (!card) {
-      return res.status(404).send({ message: 'Не удалось найти карточку с указанным идентификатором', _id: cardId });
+      return sendError(res, ERORR_CARD_NOT_FOUND);
+    }
+
+    if (card.owner !== userId) {
+      return sendError(res, ERROR_CARD_DELETE);
     }
 
     await Cards.deleteOne({ _id: cardId });
-    return res.send({ message: 'Карточка удалена', card });
+    return res.send({ message: 'Карточка удалена' });
   } catch (error) {
-    return res.status(400).send({
-      message: 'Не удалось выполнить удаление карточки',
-      error,
-    });
+    return catchError(res, error);
   }
 };
 
 export const likeCard = async (req: Request, res: Response) => {
   try {
-    const userId = req.body?._id;
-    if (!userId) {
-      return res.status(404).send({ message: 'Не удалось определить идентификатор пользователя', _id: userId });
-    }
-
-    const cardId = req.params?.id;
-
+    const { _id: userId } = res.locals.user;
+    const { id: cardId } = req.params;
     if (!cardId) {
-      return res.status(404).send({ message: 'Не удалось определить идентификатор карточки', _id: cardId });
+      return sendError(res, ERROR_REQUEST_VALIDATION);
     }
 
-    const card = await Cards.findByIdAndUpdate(cardId, { $addToSet: { likes: userId } }, { returnDocument: 'after' });
-
+    const card = await Cards.findByIdAndUpdate(
+      cardId,
+      { $addToSet: { likes: userId } },
+      { returnDocument: 'after', runValidators: true }
+    );
     if (!card) {
-      return res.status(400).send({ message: 'Не удалось обновить карточку с указанным идентификатором', _id: cardId });
+      return sendError(res, ERROR_CARD_UPDATE);
     }
-    return res.send({ data: card });
+
+    return res.send(card);
   } catch (error) {
-    return res.status(500).send({ message: 'Не удалось обновить карточку', error });
+    return catchError(res, error);
   }
 };
 
 export const disLikeCard = async (req: Request, res: Response) => {
   try {
-    const userId = req.body?._id;
-    if (!userId) {
-      return res.status(404).send({ message: 'Не удалось определить идентификатор пользователя', _id: userId });
-    }
-
-    const cardId = req.params?.id;
-
+    const { _id: userId } = res.locals.user;
+    const { id: cardId } = req.params;
     if (!cardId) {
-      return res.status(404).send({ message: 'Не удалось найти карточку с указанным идентификатором', _id: cardId });
+      return sendError(res, ERROR_REQUEST_VALIDATION);
     }
 
-    const card = await Cards.findByIdAndUpdate(cardId, { $pull: { likes: userId } }, { returnDocument: 'after' });
-
+    const card = await Cards.findByIdAndUpdate(
+      cardId,
+      { $pull: { likes: userId } },
+      { returnDocument: 'after', runValidators: true }
+    );
     if (!card) {
-      return res.status(400).send({ message: 'Не удалось обновить карточку с указанным идентификатором', _id: cardId });
+      return sendError(res, ERROR_CARD_UPDATE);
     }
-    return res.send({ data: card });
+
+    return res.send(card);
   } catch (error) {
-    return res.status(500).send({ message: 'Не удалось обновить карточку', error });
+    return catchError(res, error);
   }
 };
