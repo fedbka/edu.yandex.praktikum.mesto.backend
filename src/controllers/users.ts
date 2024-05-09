@@ -53,7 +53,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
     const user = await Users.findByIdAndUpdate(
       userId,
       { name, about, avatar },
-      { returnDocument: 'after', runValidators: true }
+      { returnDocument: 'after', runValidators: true },
     );
 
     if (!user) {
@@ -70,7 +70,11 @@ export const updateUserAvatar = async (req: Request, res: Response) => {
   try {
     const { _id: userId } = res.locals.user;
     const { avatar } = req.body;
-    const user = await Users.findByIdAndUpdate(userId, { avatar }, { returnDocument: 'after', runValidators: true });
+    const user = await Users.findByIdAndUpdate(
+      userId,
+      { avatar },
+      { returnDocument: 'after', runValidators: true },
+    );
 
     if (!user) {
       return sendError(res, ERROR_USER_UPDATE);

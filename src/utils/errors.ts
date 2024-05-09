@@ -52,10 +52,12 @@ export const ERROR_USER_UPDATE: TError = {
 
 export const ERROR_CARD_DELETE: TError = {
   code: 403,
-  message: 'Не удалось удалить карточку с указанным идентификтаром по причине отсутствия полномочий',
+  message:
+    'Не удалось удалить карточку с указанным идентификтаром по причине отсутствия полномочий',
 };
 
-export const sendError = (res: Response, error: TError) => res.status(error.code).send({ message: error.message });
+export const sendError = (res: Response, error: TError) =>
+  res.status(error.code).send({ message: error.message });
 
 export const catchError = (res: Response, error: unknown) => {
   const { name: errorName }: { name: string } = error as { name: string };

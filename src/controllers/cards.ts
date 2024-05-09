@@ -87,7 +87,7 @@ export const likeCard = async (req: Request, res: Response) => {
     const card = await Cards.findByIdAndUpdate(
       cardId,
       { $addToSet: { likes: userId } },
-      { returnDocument: 'after', runValidators: true }
+      { returnDocument: 'after', runValidators: true },
     );
     if (!card) {
       return sendError(res, ERROR_CARD_UPDATE);
@@ -110,7 +110,7 @@ export const disLikeCard = async (req: Request, res: Response) => {
     const card = await Cards.findByIdAndUpdate(
       cardId,
       { $pull: { likes: userId } },
-      { returnDocument: 'after', runValidators: true }
+      { returnDocument: 'after', runValidators: true },
     );
     if (!card) {
       return sendError(res, ERROR_CARD_UPDATE);
