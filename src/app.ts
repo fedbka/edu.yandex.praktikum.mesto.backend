@@ -5,7 +5,7 @@ import cardsRouter from './routes/cards';
 import usersRouter from './routes/users';
 import { ERORR_NOT_FOUND, sendError } from './utils/errors';
 
-const { PORT = 3000 } = process.env;
+const { PORT = 3555 } = process.env;
 
 const app = express();
 
@@ -28,6 +28,13 @@ app.use('*', (req, res) => sendError(res, ERORR_NOT_FOUND));
 
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
-app.listen(PORT, () => {
-  console.log(`App listening on port ${PORT}`);
-});
+const bootstrap = async () => {
+  try {
+    await app.listen(PORT);
+    console.log(`App listening on port ${PORT}`);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+bootstrap();
