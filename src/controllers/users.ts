@@ -1,12 +1,17 @@
+import bcrypt from 'bcrypt';
 import { Request, Response } from 'express';
+import isEmail from 'validator/lib/isEmail';
 import Users, { IUser } from '../models/user';
 import {
   ERORR_USER_NOT_FOUND,
+  ERROR_AUTH,
   ERROR_REQUEST_VALIDATION,
   ERROR_USER_UPDATE,
   catchError,
   sendError,
 } from '../utils/errors';
+
+const passwordSalt = 77;
 
 export const getUsers = async (req: Request, res: Response) => {
   try {
@@ -37,9 +42,22 @@ export const getUserById = async (req: Request, res: Response) => {
 
 export const createUser = async (req: Request, res: Response) => {
   try {
-    const { name, about, avatar }: IUser = req.body;
-    const user = await Users.create({ name, about, avatar });
-    return res.send({ data: user });
+    const { name, about, avatar, email, password }: IUser = req.body;
+
+    if (!isEmail(email)) {
+      return sendError(res, ERROR_REQUEST_VALIDATION);
+    }
+
+    const passwordHash = await bcrypt.hash(password, passwordSalt);
+    console.log(passwordHash);
+    const user = await Users.create({
+      name,
+      about,
+      avatar,
+      email,
+      passwordHash,
+    });
+    return res.send(user);
   } catch (error) {
     return catchError(res, error);
   }
@@ -53,7 +71,7 @@ export const updateUserProfile = async (req: Request, res: Response) => {
     const user = await Users.findByIdAndUpdate(
       userId,
       { name, about, avatar },
-      { returnDocument: 'after', runValidators: true },
+      { returnDocument: 'after', runValidators: true }
     );
 
     if (!user) {
@@ -73,7 +91,7 @@ export const updateUserAvatar = async (req: Request, res: Response) => {
     const user = await Users.findByIdAndUpdate(
       userId,
       { avatar },
-      { returnDocument: 'after', runValidators: true },
+      { returnDocument: 'after', runValidators: true }
     );
 
     if (!user) {
@@ -81,6 +99,33 @@ export const updateUserAvatar = async (req: Request, res: Response) => {
     }
 
     return res.send(user);
+  } catch (error) {
+    return catchError(res, error);
+  }
+};
+
+export const login = async (req: Request, res: Response) => {
+  try {
+    const { email, password } : {email: string, password: string}= req.body;
+
+    Users.findOne({ email }).select('+password')
+      .then((user) => {
+        if (!user) {
+          sendError(res, ERROR_AUTH);
+        }
+
+        return bcrypt.hash(password, passwordSalt);
+      })
+      .then((hash) => {
+        if (passwordHash !== user?.password) {
+          sendError(res, ERROR_AUTH);
+        }
+
+      })
+
+
+
+      });
   } catch (error) {
     return catchError(res, error);
   }

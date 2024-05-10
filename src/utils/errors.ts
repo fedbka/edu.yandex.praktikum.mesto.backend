@@ -56,6 +56,11 @@ export const ERROR_CARD_DELETE: TError = {
     'Не удалось удалить карточку с указанным идентификтаром по причине отсутствия полномочий',
 };
 
+export const ERROR_AUTH: TError = {
+  code: 401,
+  message: 'Некорректная комбинация пароля и эллектронной почты',
+};
+
 export const sendError = (res: Response, error: TError) =>
   res.status(error.code).send({ message: error.message });
 
