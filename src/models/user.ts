@@ -1,4 +1,5 @@
 import { Schema, SchemaTypes, model } from 'mongoose';
+import { emailValidation, urlValidation } from '../utils/validations';
 
 export interface IUser {
   name: string;
@@ -25,11 +26,13 @@ const userSchema = new Schema<IUser>(
     avatar: {
       type: SchemaTypes.String,
       default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+      validate: urlValidation,
     },
     email: {
       type: SchemaTypes.String,
       required: true,
       unique: true,
+      validate: emailValidation,
     },
     password: {
       type: SchemaTypes.String,

@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 import Cards from '../models/card';
-import AuthError from '../utils/errors/auth';
 import BadRequestError from '../utils/errors/bad-request';
 import ForbiddenError from '../utils/errors/forbidden';
 import NotFoundError from '../utils/errors/not-found';
@@ -50,7 +49,9 @@ export const deleteCard = async (req: Request, res: Response, next: NextFunction
 
     const card = await Cards.findById(cardId).orFail(new NotFoundError(MESSAGE_CARD_NOT_FOUND));
 
-    if (card.owner !== res.locals.user._id) return next(new ForbiddenError(MESSAGE_CARD_FORBIDDEN));
+    if (String(card.owner) !== res.locals.user._id) {
+      return next(new ForbiddenError(MESSAGE_CARD_FORBIDDEN));
+    }
 
     await Cards.deleteOne({ _id: cardId }).orFail(new NotFoundError(MESSAGE_CARD_NOT_FOUND));
 
@@ -66,8 +67,6 @@ export const likeCard = async (req: Request, res: Response, next: NextFunction) 
     if (!cardId) return next(new BadRequestError());
 
     const { _id: userId } = res.locals.user;
-    if (!userId) return next(new AuthError());
-
     const card = await Cards.findByIdAndUpdate(
       cardId,
       { $addToSet: { likes: userId } },
@@ -85,8 +84,6 @@ export const disLikeCard = async (req: Request, res: Response, next: NextFunctio
     if (!cardId) return next(new BadRequestError());
 
     const { _id: userId } = res.locals.user;
-    if (!userId) return next(new AuthError());
-
     const card = await Cards.findByIdAndUpdate(
       cardId,
       { $pull: { likes: userId } },

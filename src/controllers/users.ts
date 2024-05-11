@@ -5,6 +5,7 @@ import { getToken, hashPassword, matchPassword } from '../utils/auth';
 import AuthError from '../utils/errors/auth';
 import ConflictError from '../utils/errors/conflict';
 import NotFoundError from '../utils/errors/not-found';
+import BadRequestError from '../utils/errors/bad-request';
 
 const MESSAGE_USER_NOT_FOUND = 'Пользователь с указанным идентификатором не найден';
 const MESSAGE_USER_SUCCES_AUTHORIZATION = 'Успешная авторизация';
@@ -19,6 +20,21 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction) 
 };
 
 export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id: userId } = req.params;
+    if (!userId) {
+      return next(new BadRequestError());
+    }
+
+    const user = await Users.findById(userId).orFail(new NotFoundError(MESSAGE_USER_NOT_FOUND));
+
+    return res.send(user);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getMe = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { _id: userId } = res.locals.user;
     if (!userId) {

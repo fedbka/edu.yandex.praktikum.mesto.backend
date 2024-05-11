@@ -1,4 +1,5 @@
 import { model, Schema, SchemaTypes } from 'mongoose';
+import { emailValidation } from '../utils/validations';
 
 export interface ICard {
   name: string;
@@ -20,6 +21,7 @@ const cardSchema = new Schema<ICard>(
     link: {
       type: SchemaTypes.String,
       required: true,
+      validate: emailValidation,
     },
     owner: {
       type: SchemaTypes.ObjectId,
