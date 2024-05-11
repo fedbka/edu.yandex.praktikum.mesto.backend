@@ -1,69 +1,68 @@
-import bcrypt from 'bcrypt';
-import { Request, Response } from 'express';
-import isEmail from 'validator/lib/isEmail';
+import { NextFunction, Request, Response } from 'express';
+import { normalizeEmail } from 'validator';
 import Users, { IUser } from '../models/user';
-import {
-  ERORR_USER_NOT_FOUND,
-  ERROR_AUTH,
-  ERROR_REQUEST_VALIDATION,
-  ERROR_USER_UPDATE,
-  catchError,
-  sendError,
-} from '../utils/errors';
+import { getToken, hashPassword, matchPassword } from '../utils/auth';
+import AuthError from '../utils/errors/auth';
+import ConflictError from '../utils/errors/conflict';
+import NotFoundError from '../utils/errors/not-found';
 
-const passwordSalt = 77;
+const MESSAGE_USER_NOT_FOUND = 'Пользователь с указанным идентификатором не найден';
+const MESSAGE_USER_SUCCES_AUTHORIZATION = 'Успешная авторизация';
 
-export const getUsers = async (req: Request, res: Response) => {
+export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const users = await Users.find({});
-    return res.send({ data: users });
+    return res.send(users);
   } catch (error) {
-    return catchError(res, error);
+    return next(error);
   }
 };
 
-export const getUserById = async (req: Request, res: Response) => {
+export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id: userId } = req.params;
+    const { _id: userId } = res.locals.user;
     if (!userId) {
-      return sendError(res, ERROR_REQUEST_VALIDATION);
+      return next(new AuthError());
     }
 
-    const user = await Users.findById(userId);
-    if (!user) {
-      return sendError(res, ERORR_USER_NOT_FOUND);
-    }
+    const user = await Users.findById(userId).orFail(new NotFoundError(MESSAGE_USER_NOT_FOUND));
 
     return res.send(user);
   } catch (error) {
-    return catchError(res, error);
+    return next(error);
   }
 };
 
-export const createUser = async (req: Request, res: Response) => {
+export const createUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { name, about, avatar, email, password }: IUser = req.body;
 
-    if (!isEmail(email)) {
-      return sendError(res, ERROR_REQUEST_VALIDATION);
-    }
+    const passwordHash = await hashPassword(password);
 
-    const passwordHash = await bcrypt.hash(password, passwordSalt);
-    console.log(passwordHash);
     const user = await Users.create({
       name,
       about,
       avatar,
-      email,
-      passwordHash,
+      email: normalizeEmail(email),
+      password: passwordHash,
     });
-    return res.send(user);
+
+    return res.status(201).send({
+      _id: user._id,
+      name: user.name,
+      about: user.about,
+      avatar: user.avatar,
+      email: user.email,
+    });
   } catch (error) {
-    return catchError(res, error);
+    if (error instanceof Error && error.message.startsWith('E11000')) {
+      return next(new ConflictError('Пользователь с указанным Email уже существует'));
+    }
+    return next(error);
   }
 };
 
-export const updateUserProfile = async (req: Request, res: Response) => {
+export const updateUserProfile = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { _id: userId } = res.locals.user;
     const { name, about, avatar }: IUser = req.body;
@@ -72,19 +71,15 @@ export const updateUserProfile = async (req: Request, res: Response) => {
       userId,
       { name, about, avatar },
       { returnDocument: 'after', runValidators: true }
-    );
-
-    if (!user) {
-      return sendError(res, ERROR_USER_UPDATE);
-    }
+    ).orFail(new NotFoundError(MESSAGE_USER_NOT_FOUND));
 
     return res.send(user);
   } catch (error) {
-    return catchError(res, error);
+    return next(error);
   }
 };
 
-export const updateUserAvatar = async (req: Request, res: Response) => {
+export const updateUserAvatar = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { _id: userId } = res.locals.user;
     const { avatar } = req.body;
@@ -92,41 +87,30 @@ export const updateUserAvatar = async (req: Request, res: Response) => {
       userId,
       { avatar },
       { returnDocument: 'after', runValidators: true }
-    );
-
-    if (!user) {
-      return sendError(res, ERROR_USER_UPDATE);
-    }
+    ).orFail(new NotFoundError(MESSAGE_USER_NOT_FOUND));
 
     return res.send(user);
   } catch (error) {
-    return catchError(res, error);
+    return next(error);
   }
 };
 
-export const login = async (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email, password } : {email: string, password: string}= req.body;
+    const { email, password }: { email: string; password: string } = req.body;
 
-    Users.findOne({ email }).select('+password')
-      .then((user) => {
-        if (!user) {
-          sendError(res, ERROR_AUTH);
-        }
+    const user = await Users.findOne({ email }).select('+password').orFail(new AuthError());
 
-        return bcrypt.hash(password, passwordSalt);
-      })
-      .then((hash) => {
-        if (passwordHash !== user?.password) {
-          sendError(res, ERROR_AUTH);
-        }
+    const matched = await matchPassword(password, user.password);
+    if (!matched) {
+      return next(new AuthError());
+    }
 
-      })
-
-
-
-      });
+    const token = getToken({ _id: user._id.toString() });
+    return res
+      .cookie('token', token, { httpOnly: true, sameSite: true })
+      .send({ message: MESSAGE_USER_SUCCES_AUTHORIZATION });
   } catch (error) {
-    return catchError(res, error);
+    return next(error);
   }
 };
