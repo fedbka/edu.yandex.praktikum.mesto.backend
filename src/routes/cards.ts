@@ -1,6 +1,13 @@
 import { Joi, Segments, celebrate } from 'celebrate';
 import { Router } from 'express';
-import { createCard, deleteCard, disLikeCard, getCardById, getCards, likeCard } from '../controllers/cards';
+import {
+  createCard,
+  deleteCard,
+  disLikeCard,
+  getCardById,
+  getCards,
+  likeCard,
+} from '../controllers/cards';
 
 const createCardSchema = celebrate({
   [Segments.BODY]: Joi.object().keys({

@@ -3,7 +3,11 @@ import winston from 'winston';
 
 const transports = {
   console: new winston.transports.Console({
-    format: winston.format.combine(winston.format.colorize(), winston.format.timestamp(), winston.format.simple()),
+    format: winston.format.combine(
+      winston.format.colorize(),
+      winston.format.timestamp(),
+      winston.format.simple(),
+    ),
     level: 'error',
   }),
   errorLogfile: new winston.transports.File({

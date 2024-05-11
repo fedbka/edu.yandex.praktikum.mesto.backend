@@ -1,6 +1,11 @@
 import { Joi, Segments, celebrate } from 'celebrate';
 import { Router } from 'express';
-import { getUserById, getUsers, updateUserAvatar, updateUserProfile } from '../controllers/users';
+import {
+  getUserById,
+  getUsers,
+  updateUserAvatar,
+  updateUserProfile,
+} from '../controllers/users';
 
 const updateUserProfileSchema = celebrate({
   [Segments.BODY]: Joi.object().keys({

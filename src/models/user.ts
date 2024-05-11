@@ -40,7 +40,7 @@ const userSchema = new Schema<IUser>(
   {
     timestamps: true,
     versionKey: false,
-  }
+  },
 );
 
 export default model<IUser>('user', userSchema);

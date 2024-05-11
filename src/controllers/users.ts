@@ -35,7 +35,13 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
 
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { name, about, avatar, email, password }: IUser = req.body;
+    const {
+      name,
+      about,
+      avatar,
+      email,
+      password,
+    }: IUser = req.body;
 
     const passwordHash = await hashPassword(password);
 
@@ -70,7 +76,7 @@ export const updateUserProfile = async (req: Request, res: Response, next: NextF
     const user = await Users.findByIdAndUpdate(
       userId,
       { name, about, avatar },
-      { returnDocument: 'after', runValidators: true }
+      { returnDocument: 'after', runValidators: true },
     ).orFail(new NotFoundError(MESSAGE_USER_NOT_FOUND));
 
     return res.send(user);
@@ -86,7 +92,7 @@ export const updateUserAvatar = async (req: Request, res: Response, next: NextFu
     const user = await Users.findByIdAndUpdate(
       userId,
       { avatar },
-      { returnDocument: 'after', runValidators: true }
+      { returnDocument: 'after', runValidators: true },
     ).orFail(new NotFoundError(MESSAGE_USER_NOT_FOUND));
 
     return res.send(user);

@@ -71,7 +71,7 @@ export const likeCard = async (req: Request, res: Response, next: NextFunction) 
     const card = await Cards.findByIdAndUpdate(
       cardId,
       { $addToSet: { likes: userId } },
-      { returnDocument: 'after', runValidators: true }
+      { returnDocument: 'after', runValidators: true },
     ).orFail(new NotFoundError(MESSAGE_CARD_NOT_FOUND));
     return res.send(card);
   } catch (error) {
@@ -90,7 +90,7 @@ export const disLikeCard = async (req: Request, res: Response, next: NextFunctio
     const card = await Cards.findByIdAndUpdate(
       cardId,
       { $pull: { likes: userId } },
-      { returnDocument: 'after', runValidators: true }
+      { returnDocument: 'after', runValidators: true },
     ).orFail(new NotFoundError(MESSAGE_CARD_NOT_FOUND));
 
     return res.send(card);

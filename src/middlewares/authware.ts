@@ -17,6 +17,7 @@ const authWare = (req: Request, res: Response, next: NextFunction) => {
   }
 
   // Размещаем тут по согласованию с преподователем.
+  // https://app.pachca.com/chats?thread_id=3605212&sidebar_message=242177505
   res.locals.user = payload;
 
   return next();
