@@ -1,13 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
-import {
-  MESSAGA_CARD_SUCCES_DELETE,
-  MESSAGE_CARD_FORBIDDEN,
-  MESSAGE_CARD_NOT_FOUND,
-} from '../utils/messages';
 import Cards from '../models/card';
 import BadRequestError from '../utils/errors/bad-request';
 import ForbiddenError from '../utils/errors/forbidden';
 import NotFoundError from '../utils/errors/not-found';
+import {
+  MESSAGE_CARD_FORBIDDEN,
+  MESSAGE_CARD_NOT_FOUND,
+  MESSAGE_CARD_SUCCES_DELETE,
+} from '../utils/messages';
 
 export const getCards = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -56,7 +56,7 @@ export const deleteCard = async (req: Request, res: Response, next: NextFunction
 
     await Cards.deleteOne({ _id: cardId }).orFail(new NotFoundError(MESSAGE_CARD_NOT_FOUND));
 
-    return res.send({ message: MESSAGA_CARD_SUCCES_DELETE });
+    return res.send({ message: MESSAGE_CARD_SUCCES_DELETE });
   } catch (error) {
     return next(error);
   }

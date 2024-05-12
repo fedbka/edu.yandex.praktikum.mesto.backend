@@ -7,9 +7,10 @@ import BadRequestError from '../utils/errors/bad-request';
 import ConflictError from '../utils/errors/conflict';
 import NotFoundError from '../utils/errors/not-found';
 import {
+  MESSAGE_AUTHENTICATION_LOGOUT,
+  MESSAGE_AUTHENTICATION_SUCCESS,
   MESSAGE_USER_CONFLICT_EMAIL,
   MESSAGE_USER_NOT_FOUND,
-  MESSAGE_USER_SUCCES_AUTHENTICATION,
 } from '../utils/messages';
 
 const MONGODB_UNIQUE_CONFLICT_PREFIX = 'E11000';
@@ -135,7 +136,17 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     const token = getToken({ _id: user._id.toString() });
     return res
       .cookie('token', token, { httpOnly: true, sameSite: true })
-      .send({ message: MESSAGE_USER_SUCCES_AUTHENTICATION });
+      .send({ message: MESSAGE_AUTHENTICATION_SUCCESS });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const logout = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    return res
+      .clearCookie('token')
+      .send({ message: MESSAGE_AUTHENTICATION_LOGOUT });
   } catch (error) {
     return next(error);
   }

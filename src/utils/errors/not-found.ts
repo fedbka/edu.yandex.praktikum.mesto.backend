@@ -1,10 +1,10 @@
 import { constants } from 'http2';
-import { MESSAGE_ERROR_NOT_FOUND } from '../messages';
+import { MESSAGE_NOT_FOUND } from '../messages';
 
 class NotFoundError extends Error {
   public statusCode: number;
 
-  constructor(message: string = MESSAGE_ERROR_NOT_FOUND) {
+  constructor(message: string = MESSAGE_NOT_FOUND) {
     super(message);
     this.statusCode = constants.HTTP_STATUS_NOT_FOUND;
   }
