@@ -3,12 +3,16 @@ import { normalizeEmail } from 'validator';
 import Users, { IUser } from '../models/user';
 import { getToken, hashPassword, matchPassword } from '../utils/auth';
 import AuthError from '../utils/errors/auth';
+import BadRequestError from '../utils/errors/bad-request';
 import ConflictError from '../utils/errors/conflict';
 import NotFoundError from '../utils/errors/not-found';
-import BadRequestError from '../utils/errors/bad-request';
+import {
+  MESSAGE_USER_CONFLICT_EMAIL,
+  MESSAGE_USER_NOT_FOUND,
+  MESSAGE_USER_SUCCES_AUTHENTICATION,
+} from '../utils/messages';
 
-const MESSAGE_USER_NOT_FOUND = 'Пользователь с указанным идентификатором не найден';
-const MESSAGE_USER_SUCCES_AUTHORIZATION = 'Успешная авторизация';
+const MONGODB_UNIQUE_CONFLICT_PREFIX = 'E11000';
 
 export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -77,8 +81,8 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
       email: user.email,
     });
   } catch (error) {
-    if (error instanceof Error && error.message.startsWith('E11000')) {
-      return next(new ConflictError('Пользователь с указанным Email уже существует'));
+    if (error instanceof Error && error.message.startsWith(MONGODB_UNIQUE_CONFLICT_PREFIX)) {
+      return next(new ConflictError(MESSAGE_USER_CONFLICT_EMAIL));
     }
     return next(error);
   }
@@ -131,7 +135,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     const token = getToken({ _id: user._id.toString() });
     return res
       .cookie('token', token, { httpOnly: true, sameSite: true })
-      .send({ message: MESSAGE_USER_SUCCES_AUTHORIZATION });
+      .send({ message: MESSAGE_USER_SUCCES_AUTHENTICATION });
   } catch (error) {
     return next(error);
   }

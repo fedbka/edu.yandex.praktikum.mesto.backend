@@ -9,23 +9,27 @@ export interface IUser {
   password: string;
 }
 
+const DEFAULT_USER_NAME = 'Жак-Ив Кусто';
+const DEFAULT_USER_ABOUT = 'Исследователь';
+const DEFAULT_USER_AVATAR = 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png';
+
 const userSchema = new Schema<IUser>(
   {
     name: {
       type: SchemaTypes.String,
       minlength: 2,
       maxlength: 30,
-      default: 'Жак-Ив Кусто',
+      default: DEFAULT_USER_NAME,
     },
     about: {
       type: SchemaTypes.String,
       minlength: 2,
       maxlength: 200,
-      default: 'Исследователь',
+      default: DEFAULT_USER_ABOUT,
     },
     avatar: {
       type: SchemaTypes.String,
-      default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+      default: DEFAULT_USER_AVATAR,
       validate: urlValidation,
     },
     email: {

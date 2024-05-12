@@ -1,12 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
+import {
+  MESSAGA_CARD_SUCCES_DELETE,
+  MESSAGE_CARD_FORBIDDEN,
+  MESSAGE_CARD_NOT_FOUND,
+} from '../utils/messages';
 import Cards from '../models/card';
 import BadRequestError from '../utils/errors/bad-request';
 import ForbiddenError from '../utils/errors/forbidden';
 import NotFoundError from '../utils/errors/not-found';
-
-const MESSAGE_CARD_NOT_FOUND = 'Карточка с указанным идентификатором не найдена';
-const MESSAGE_CARD_FORBIDDEN = 'Отсутствуют права доступа на карточку с указанным идентификатором';
-const MESSAGA_CARD_SUCCES_DELETE = 'Карточка с указанным идентификатором удалена';
 
 export const getCards = async (req: Request, res: Response, next: NextFunction) => {
   try {

@@ -3,15 +3,19 @@ import { ErrorRequestHandler } from 'express';
 import mongoose from 'mongoose';
 import BadRequestError from '../utils/errors/bad-request';
 import ServerError from '../utils/errors/server';
+import {
+  MESSAGE_ERROR_BAD_REQUEST,
+  MESSAGE_ERROR_CAST_ERROR,
+} from '../utils/messages';
 
 const errorWare: ErrorRequestHandler = (err, req, res, next) => {
   let error;
   if (err instanceof mongoose.Error.ValidationError) {
-    error = new BadRequestError(`Ошибка валидации данных запроса: ${err.message}`);
+    error = new BadRequestError(`${MESSAGE_ERROR_BAD_REQUEST}: ${err.message}`);
   }
 
   if (err instanceof mongoose.Error.CastError) {
-    error = new BadRequestError(`Ошибка преобразования данных запроса: ${err.message}`);
+    error = new BadRequestError(`${MESSAGE_ERROR_CAST_ERROR}: ${err.message}`);
   }
 
   if (err instanceof CelebrateError) {
@@ -19,10 +23,10 @@ const errorWare: ErrorRequestHandler = (err, req, res, next) => {
     err.details.forEach((key) => {
       validationErrorMessage += key.details.reduce((prev: string, item) => prev + item.message, '');
     });
-    error = new BadRequestError(`Ошибка валидации данных запроса: ${validationErrorMessage}`);
+    error = new BadRequestError(`${MESSAGE_ERROR_BAD_REQUEST}: ${validationErrorMessage}`);
   }
   if (!err || !(err instanceof Error)) {
-    error = new ServerError('Непредвиденная ошибка сервера');
+    error = new ServerError();
   }
 
   if (!error) {
