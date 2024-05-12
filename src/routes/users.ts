@@ -11,8 +11,8 @@ import { requestWithIdParam, updateUserAvatarSchema, updateUserProfileSchema } f
 const router = Router();
 
 router.get('/users', getUsers);
-router.get('/users', requestWithIdParam, getUserById);
 router.get('/users/me', getMe);
+router.get('/users/:id', requestWithIdParam, getUserById);
 router.patch('/users/me', updateUserProfileSchema, updateUserProfile);
 router.patch('/users/me/avatar', updateUserAvatarSchema, updateUserAvatar);
 
